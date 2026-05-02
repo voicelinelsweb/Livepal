@@ -20,9 +20,8 @@ final class SystemAudioCapture: NSObject {
         config.pixelFormat = kCVPixelFormatType_32BGRA
         config.showsCursor = false
         config.capturesAudio = true
-        if #available(macOS 15.0, *) {
-            config.captureMicrophone = false
-        }
+        // Note: `captureMicrophone` exists only on newer SDKs; omit so CI (macOS 14 runners) compiles.
+        // Incoming-audio capture uses the window’s system audio stream, not the mic.
         config.excludesCurrentProcessAudio = true
         config.sampleRate = 48_000
         config.channelCount = 2
