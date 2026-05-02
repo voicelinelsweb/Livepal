@@ -45,6 +45,8 @@ Deploy on Vercel:
 
 Optional: pass a download URL without editing HTML: `https://your-site.vercel.app/?dl=https%3A%2F%2Fexample.com%2FLivepal.dmg`
 
+This repo’s first Vercel production deploy (from the `landing` directory) was: `https://landing-r516lrvd5-voicelinelswebs-projects.vercel.app` — set a cleaner alias under **Vercel → Project → Domains** if you like.
+
 ## GitHub from the CLI
 
 ```bash
