@@ -9,6 +9,6 @@ struct LivepalApp: App {
             ContentView()
                 .environmentObject(session)
         }
-        .defaultSize(width: 560, height: 720)
+        .defaultSize(width: 1080, height: 760)
     }
 }

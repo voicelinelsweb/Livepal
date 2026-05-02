@@ -3,30 +3,20 @@ import Foundation
 import NaturalLanguage
 import Speech
 
-/// Two `SFSpeechRecognizer` instances (one per lane language) fed the same incoming audio.
-/// `NLLanguageRecognizer` scores route text into the correct section — no translation, no paid APIs.
-///
-/// **Turn-taking:** optimized for **one remote speaker at a time** (English, then Spanish, etc.).
-/// Only one section shows a **live partial** at once; the other keeps the last **final** caption.
 @MainActor
 final class DualLaneSpeechCoordinator {
     private var pipelineLane1: SpeechPipeline?
     private var pipelineLane2: SpeechPipeline?
 
-    private var latest1: String = ""
-    private var latest2: String = ""
-
-    private var stable1: String = ""
-    private var stable2: String = ""
-    private var partial1: String = ""
-    private var partial2: String = ""
-
     private let lane1NL: NLLanguage
     private let lane2NL: NLLanguage
 
-    private let confidenceFloor: Double = 0.12
-    /// Minimum margin between lane scores to commit to a lane (works better when speakers take turns).
-    private let sequentialMargin: Double = 0.04
+    private var stable1: String = ""
+    private var stable2: String = ""
+    private var metrics = RoutingMetrics()
+    private var engine = CaptionRoutingEngine()
+
+    private var inactivityTask: Task<Void, Never>?
 
     init(lane1LocaleId: String, lane2LocaleId: String) throws {
         guard let nl1 = Self.nlLanguage(from: lane1LocaleId) else {
@@ -45,37 +35,27 @@ final class DualLaneSpeechCoordinator {
         pipelineLane2 = try SpeechPipeline(locale: Locale(identifier: lane2LocaleId), preferOnDevice: true)
     }
 
-    func start(onVisualUpdate: @escaping (_ lane1: String, _ lane2: String) -> Void) {
-        latest1 = ""
-        latest2 = ""
+    func start(onVisualUpdate: @escaping (_ lane1: String, _ lane2: String, _ c1: Double, _ c2: Double) -> Void) {
         stable1 = ""
         stable2 = ""
-        partial1 = ""
-        partial2 = ""
+        metrics = RoutingMetrics()
+        engine = CaptionRoutingEngine()
 
         pipelineLane1?.start(
             onPartial: { [weak self] text in
-                guard let self else { return }
-                self.latest1 = text
-                self.routePartial(onVisualUpdate: onVisualUpdate)
+                self?.routePartial(latest1: text, latest2: "", onVisualUpdate: onVisualUpdate)
             },
             onFinal: { [weak self] text in
-                guard let self else { return }
-                self.latest1 = text
-                self.routeFinal(trimmed: text.trimmingCharacters(in: .whitespacesAndNewlines), onVisualUpdate: onVisualUpdate)
+                self?.routeFinal(text, fromLane: 1, onVisualUpdate: onVisualUpdate)
             }
         )
 
         pipelineLane2?.start(
             onPartial: { [weak self] text in
-                guard let self else { return }
-                self.latest2 = text
-                self.routePartial(onVisualUpdate: onVisualUpdate)
+                self?.routePartial(latest1: "", latest2: text, onVisualUpdate: onVisualUpdate)
             },
             onFinal: { [weak self] text in
-                guard let self else { return }
-                self.latest2 = text
-                self.routeFinal(trimmed: text.trimmingCharacters(in: .whitespacesAndNewlines), onVisualUpdate: onVisualUpdate)
+                self?.routeFinal(text, fromLane: 2, onVisualUpdate: onVisualUpdate)
             }
         )
     }
@@ -90,96 +70,78 @@ final class DualLaneSpeechCoordinator {
         pipelineLane2?.stop()
         pipelineLane1 = nil
         pipelineLane2 = nil
-        latest1 = ""
-        latest2 = ""
-        stable1 = ""
-        stable2 = ""
-        partial1 = ""
-        partial2 = ""
+        inactivityTask?.cancel()
+        inactivityTask = nil
     }
 
-    private func emit(onVisualUpdate: @escaping (String, String) -> Void) {
-        let d1 = partial1.isEmpty ? stable1 : partial1
-        let d2 = partial2.isEmpty ? stable2 : partial2
-        onVisualUpdate(d1, d2)
-    }
-
-    private func routePartial(onVisualUpdate: @escaping (String, String) -> Void) {
+    private func routePartial(
+        latest1: String,
+        latest2: String,
+        onVisualUpdate: @escaping (String, String, Double, Double) -> Void
+    ) {
         let t1 = latest1.trimmingCharacters(in: .whitespacesAndNewlines)
         let t2 = latest2.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let s1_1 = Self.languageConfidence(text: t1, language: lane1NL)
-        let s1_2 = Self.languageConfidence(text: t1, language: lane2NL)
-        let s2_1 = Self.languageConfidence(text: t2, language: lane1NL)
-        let s2_2 = Self.languageConfidence(text: t2, language: lane2NL)
-
-        struct Scored {
-            let text: String
-            let c1: Double
-            let c2: Double
-        }
-
-        var scored: [Scored] = []
+        var candidates: [CandidateTranscript] = []
         if t1.count >= 2 {
-            scored.append(Scored(text: latest1, c1: s1_1, c2: s1_2))
+            candidates.append(candidate(text: latest1, sourceLane: 1))
         }
         if t2.count >= 2 {
-            scored.append(Scored(text: latest2, c1: s2_1, c2: s2_2))
+            candidates.append(candidate(text: latest2, sourceLane: 2))
         }
 
-        partial1 = ""
-        partial2 = ""
-
-        guard let best = scored.max(by: { max($0.c1, $0.c2) < max($1.c1, $1.c2) }) else {
-            emit(onVisualUpdate: onVisualUpdate)
-            return
+        let decision = engine.decide(candidates: candidates)
+        if decision.activeLane == nil, !candidates.isEmpty {
+            metrics.recordLowConfidence()
+            if candidates.count > 1 {
+                metrics.recordDroppedPartial()
+            }
         }
 
-        let strength = max(best.c1, best.c2)
-        guard strength >= confidenceFloor else {
-            emit(onVisualUpdate: onVisualUpdate)
-            return
-        }
+        let display1 = decision.lane1Text.isEmpty ? stable1 : decision.lane1Text
+        let display2 = decision.lane2Text.isEmpty ? stable2 : decision.lane2Text
+        onVisualUpdate(display1, display2, decision.lane1Confidence, decision.lane2Confidence)
 
-        // Turn-taking: one live partial at a time in the section that matches the detected language.
-        if best.c1 >= best.c2 + sequentialMargin {
-            partial1 = best.text
-        } else if best.c2 >= best.c1 + sequentialMargin {
-            partial2 = best.text
-        } else if best.c1 >= best.c2 {
-            partial1 = best.text
-        } else {
-            partial2 = best.text
-        }
-
-        emit(onVisualUpdate: onVisualUpdate)
+        resetInactivityTimer(onVisualUpdate: onVisualUpdate)
     }
 
-    private func routeFinal(trimmed: String, onVisualUpdate: @escaping (String, String) -> Void) {
-        guard !trimmed.isEmpty else {
-            partial1 = ""
-            partial2 = ""
-            emit(onVisualUpdate: onVisualUpdate)
-            return
+    private func routeFinal(
+        _ raw: String,
+        fromLane: Int,
+        onVisualUpdate: @escaping (String, String, Double, Double) -> Void
+    ) {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        let candidate = candidate(text: trimmed, sourceLane: fromLane)
+        let before = engine.lastLane
+        let decision = engine.decide(candidates: [candidate])
+        if before != nil, before != decision.activeLane {
+            metrics.recordReroute()
         }
 
-        let c1 = Self.languageConfidence(text: trimmed, language: lane1NL)
-        let c2 = Self.languageConfidence(text: trimmed, language: lane2NL)
-
-        partial1 = ""
-        partial2 = ""
-
-        if c1 >= c2 + sequentialMargin, c1 >= confidenceFloor {
+        if decision.activeLane == 1 {
             stable1 = trimmed
-        } else if c2 >= c1 + sequentialMargin, c2 >= confidenceFloor {
-            stable2 = trimmed
-        } else if c1 >= c2 {
-            stable1 = trimmed
-        } else {
+        } else if decision.activeLane == 2 {
             stable2 = trimmed
         }
 
-        emit(onVisualUpdate: onVisualUpdate)
+        onVisualUpdate(stable1, stable2, decision.lane1Confidence, decision.lane2Confidence)
+    }
+
+    private func candidate(text: String, sourceLane: Int) -> CandidateTranscript {
+        let c1 = Self.languageConfidence(text: text, language: lane1NL)
+        let c2 = Self.languageConfidence(text: text, language: lane2NL)
+        return CandidateTranscript(text: text, lane1Score: c1, lane2Score: c2, sourceLane: sourceLane)
+    }
+
+    private func resetInactivityTimer(onVisualUpdate: @escaping (String, String, Double, Double) -> Void) {
+        inactivityTask?.cancel()
+        inactivityTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard let self, !Task.isCancelled else { return }
+            onVisualUpdate(self.stable1, self.stable2, 0, 0)
+        }
     }
 
     private static func languageConfidence(text: String, language: NLLanguage) -> Double {

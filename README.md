@@ -16,6 +16,15 @@ There is **no translation step** and **no paid cloud API** in the default design
 
 On-device recognition is preferred when supported (`requiresOnDeviceRecognition`); if a locale does not support on-device recognition on your Mac, Speech may fall back per Apple’s rules.
 
+
+## v2 Highlights
+
+- Premium split-layout UI with dedicated `Session`, `Overlay`, `Language`, and `Advanced` panels.
+- Upgraded HUD with confidence indicators, glass styling, adjustable opacity/font size, and snap anchors (top/middle/bottom).
+- Scored routing engine (`CaptionRoutingEngine`) with debounce and inactivity handling for cleaner bilingual turn-taking captions.
+- Pro controls: hotkeys (`Cmd+Shift+S` start/stop, `Cmd+Shift+L` overlay toggle), saved session profiles, and persistent overlay presets.
+- Reliability pass: permission health summaries, capture interruption auto-restart with backoff, and no-audio/no-caption watchdog warnings.
+
 ## Requirements
 
 - macOS 14+
@@ -101,3 +110,11 @@ git push -u origin main
 ## License
 
 ISC (see `package.json`).
+
+## Functional validation checklist
+
+- `swift build` and `swift build -c release` succeed.
+- `./scripts/package_app.sh` creates and verifies signed `Livepal.app`.
+- Start a session, verify alternating bilingual lanes update correctly.
+- Resize/move HUD and relaunch to confirm preference persistence.
+- Confirm hotkeys (`Cmd+Shift+S`, `Cmd+Shift+L`) trigger expected actions while app is focused.

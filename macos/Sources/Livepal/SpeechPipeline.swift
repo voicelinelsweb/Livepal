@@ -15,6 +15,11 @@ final class SpeechPipeline {
     private let targetFormat: AVAudioFormat
     private let preferOnDevice: Bool
 
+    private var inflightBuffers = 0
+    private let maxInflightBuffers = 6
+
+    var onRuntimeError: ((Error) -> Void)?
+
     init(locale: Locale, preferOnDevice: Bool = true) throws {
         guard let recognizer = SFSpeechRecognizer(locale: locale) else {
             throw NSError(domain: "Livepal", code: 10, userInfo: [NSLocalizedDescriptionKey: "Speech recognizer unavailable for \(locale.identifier)"])
@@ -35,32 +40,33 @@ final class SpeechPipeline {
 
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
-        if preferOnDevice, recognizer.supportsOnDeviceRecognition {
-            request.requiresOnDeviceRecognition = true
-        } else {
-            request.requiresOnDeviceRecognition = false
-        }
+        request.requiresOnDeviceRecognition = preferOnDevice && recognizer.supportsOnDeviceRecognition
         self.request = request
 
-        task = recognizer.recognitionTask(with: request) { result, error in
-            if error != nil {
+        task = recognizer.recognitionTask(with: request) { [weak self] result, error in
+            if let error {
+                Task { @MainActor in
+                    self?.onRuntimeError?(error)
+                }
                 return
             }
             guard let result else { return }
             let text = result.bestTranscription.formattedString
             if result.isFinal {
-                Task { @MainActor in
-                    onFinal(text)
-                }
+                Task { @MainActor in onFinal(text) }
             } else {
-                Task { @MainActor in
-                    onPartial(text)
-                }
+                Task { @MainActor in onPartial(text) }
             }
         }
     }
 
     func append(buffer: AVAudioPCMBuffer) {
+        guard inflightBuffers < maxInflightBuffers else {
+            return
+        }
+        inflightBuffers += 1
+        defer { inflightBuffers = max(0, inflightBuffers - 1) }
+
         guard let converted = convert(buffer) else { return }
         request?.append(converted)
     }
@@ -71,6 +77,7 @@ final class SpeechPipeline {
         task = nil
         request = nil
         converter = nil
+        inflightBuffers = 0
     }
 
     private func convert(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
@@ -96,7 +103,8 @@ final class SpeechPipeline {
         }
 
         converter.convert(to: out, error: &error, withInputFrom: inputBlock)
-        if error != nil {
+        if let error {
+            onRuntimeError?(error)
             return nil
         }
         return out
