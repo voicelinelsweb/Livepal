@@ -3,231 +3,409 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Livepal — free on-device live captions for Mac calls. Two languages, turn-taking friendly." />
+    <meta name="description" content="Livepal — free on-device live captions for Mac calls. Bilingual lanes, turn-taking friendly." />
     <title>Livepal — Live captions for Mac</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
     <style>
       :root {
-        --bg: #0b0c0f;
-        --panel: #12141a;
-        --text: #f2f4f8;
-        --muted: #9aa3b2;
-        --accent: #7dd3fc;
-        --accent-2: #fde047;
-        --border: rgba(255, 255, 255, 0.08);
-        --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+        --bg0: #07080c;
+        --bg1: #0e1017;
+        --text: #f4f6fb;
+        --muted: #98a2b3;
+        --line: rgba(255, 255, 255, 0.09);
+        --cyan: #5ec8ff;
+        --amber: #f5d565;
+        --card: rgba(255, 255, 255, 0.035);
+        --glow: rgba(94, 200, 255, 0.22);
       }
       * {
         box-sizing: border-box;
       }
+      html {
+        scroll-behavior: smooth;
+      }
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "DM Sans", system-ui, -apple-system, sans-serif;
-        background: radial-gradient(1200px 600px at 20% -10%, rgba(125, 211, 252, 0.12), transparent),
-          radial-gradient(900px 500px at 90% 10%, rgba(253, 224, 71, 0.08), transparent), var(--bg);
+        font-family: "Instrument Sans", system-ui, -apple-system, sans-serif;
         color: var(--text);
-        line-height: 1.6;
+        background: var(--bg0);
+        line-height: 1.55;
       }
-      a {
-        color: var(--accent);
+      .noise {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        opacity: 0.04;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        mix-blend-mode: overlay;
+      }
+      .mesh {
+        position: fixed;
+        inset: -20% -10% auto;
+        height: 70vh;
+        background: radial-gradient(50% 60% at 15% 20%, var(--glow), transparent 55%),
+          radial-gradient(40% 50% at 85% 10%, rgba(245, 213, 101, 0.12), transparent 50%),
+          radial-gradient(35% 40% at 50% 90%, rgba(94, 200, 255, 0.08), transparent 55%);
+        filter: blur(0px);
+        pointer-events: none;
       }
       .wrap {
-        max-width: 920px;
+        position: relative;
+        max-width: 1040px;
         margin: 0 auto;
-        padding: 3rem 1.5rem 4rem;
+        padding: 2.25rem 1.35rem 4rem;
       }
       header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2.75rem;
       }
-      .logo {
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
         font-weight: 700;
         letter-spacing: -0.03em;
-        font-size: 1.15rem;
+        font-size: 1.1rem;
       }
-      .badge {
-        font-size: 0.75rem;
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(145deg, rgba(94, 200, 255, 0.95), rgba(245, 213, 101, 0.85));
+        box-shadow: 0 12px 40px rgba(94, 200, 255, 0.25);
+      }
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+      .pill {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        letter-spacing: 0.12em;
         color: var(--muted);
-        border: 1px solid var(--border);
-        padding: 0.35rem 0.6rem;
+        border: 1px solid var(--line);
+        padding: 0.35rem 0.65rem;
         border-radius: 999px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .hero {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: 1fr;
+        margin-bottom: 2.5rem;
+      }
+      @media (min-width: 900px) {
+        .hero {
+          grid-template-columns: 1.05fr 0.95fr;
+          align-items: start;
+        }
       }
       h1 {
-        font-size: clamp(2.1rem, 5vw, 3rem);
-        line-height: 1.1;
-        letter-spacing: -0.04em;
+        font-size: clamp(2.35rem, 5vw, 3.35rem);
+        line-height: 1.05;
+        letter-spacing: -0.045em;
         margin: 0 0 1rem;
       }
+      .gradient-text {
+        background: linear-gradient(90deg, var(--text), var(--cyan));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
       .lede {
-        font-size: 1.2rem;
+        margin: 0;
+        font-size: 1.15rem;
         color: var(--muted);
-        max-width: 52ch;
-        margin: 0 0 2rem;
+        max-width: 46ch;
       }
-      .panel {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent), var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 1.25rem 1.25rem 1rem;
-        box-shadow: var(--shadow);
-        margin-bottom: 2rem;
-      }
-      .caption-demo {
-        display: grid;
-        gap: 0.75rem;
-      }
-      .cap-line {
-        border-radius: 14px;
-        padding: 0.85rem 1rem;
-        background: rgba(0, 0, 0, 0.35);
-        border: 1px solid var(--border);
-      }
-      .cap-label {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--muted);
-        margin-bottom: 0.35rem;
-      }
-      .cap-text {
-        font-size: 1.05rem;
-        font-weight: 500;
-      }
-      .cap-text.secondary {
-        color: var(--accent-2);
-      }
-      .actions {
+      .cta {
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem;
         align-items: center;
-        margin-bottom: 2.5rem;
+        margin-top: 1.5rem;
       }
       .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        padding: 0.85rem 1.25rem;
-        border-radius: 12px;
-        font-weight: 600;
+        padding: 0.95rem 1.35rem;
+        border-radius: 14px;
+        font-weight: 650;
         text-decoration: none;
         border: 1px solid transparent;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 1.02rem;
         font-family: inherit;
+        transition: transform 0.15s ease, filter 0.15s ease, border-color 0.15s ease;
+      }
+      .btn:active {
+        transform: scale(0.98);
       }
       .btn-primary {
-        background: linear-gradient(180deg, #e8f7ff, #bae6fd);
-        color: #0c1220;
+        background: linear-gradient(180deg, #e8f7ff, #9bd8ff);
+        color: #0a1020;
+        box-shadow: 0 18px 50px rgba(94, 200, 255, 0.28);
       }
       .btn-primary:hover {
-        filter: brightness(1.05);
+        filter: brightness(1.06);
       }
       .btn-ghost {
-        background: transparent;
+        background: rgba(255, 255, 255, 0.03);
         color: var(--text);
-        border-color: var(--border);
+        border-color: var(--line);
       }
       .btn-ghost:hover {
-        border-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.22);
       }
-      .hint {
-        font-size: 0.9rem;
+      .micro {
+        font-size: 0.88rem;
         color: var(--muted);
-        max-width: 60ch;
+        max-width: 52ch;
       }
-      ul.features {
-        margin: 0;
-        padding: 0;
-        list-style: none;
+      .micro code {
+        font-size: 0.82em;
+        padding: 0.12rem 0.35rem;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--line);
+      }
+      .preview {
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+        padding: 1.15rem;
+      }
+      .preview-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.85rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .dots {
+        display: flex;
+        gap: 6px;
+      }
+      .dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .lane {
+        border-radius: 16px;
+        padding: 0.95rem 1rem;
+        background: rgba(0, 0, 0, 0.38);
+        border: 1px solid var(--line);
+        margin-bottom: 0.75rem;
+      }
+      .lane:last-child {
+        margin-bottom: 0;
+      }
+      .lane-label {
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.35rem;
+      }
+      .lane-text {
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      .lane-text.es {
+        color: var(--amber);
+      }
+      .steps {
         display: grid;
-        gap: 0.75rem;
+        gap: 0.85rem;
+        grid-template-columns: 1fr;
+        margin: 2.5rem 0;
       }
-      ul.features li {
-        padding: 0.85rem 1rem;
-        border-radius: 14px;
-        border: 1px solid var(--border);
+      @media (min-width: 720px) {
+        .steps {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .step {
+        padding: 1.1rem 1.15rem;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: var(--card);
+      }
+      .step strong {
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+      .step span {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .grid {
+        display: grid;
+        gap: 0.85rem;
+      }
+      @media (min-width: 720px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .feat {
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+        border: 1px solid var(--line);
         background: rgba(255, 255, 255, 0.02);
+      }
+      .feat h3 {
+        margin: 0 0 0.35rem;
+        font-size: 1rem;
+      }
+      .feat p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
       }
       footer {
         margin-top: 3rem;
         padding-top: 1.5rem;
-        border-top: 1px solid var(--border);
-        font-size: 0.9rem;
+        border-top: 1px solid var(--line);
         color: var(--muted);
+        font-size: 0.92rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: space-between;
+        align-items: center;
+      }
+      footer a {
+        color: var(--cyan);
       }
       @media (prefers-reduced-motion: reduce) {
-        * {
-          transition: none !important;
+        .btn {
+          transition: none;
         }
       }
     </style>
   </head>
   <body>
+    <div class="mesh" aria-hidden="true"></div>
+    <div class="noise" aria-hidden="true"></div>
     <div class="wrap">
       <header>
-        <div class="logo">Livepal</div>
-        <span class="badge">macOS · On-device</span>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          Livepal
+        </div>
+        <div class="pill-row">
+          <span class="pill">macOS 14+</span>
+          <span class="pill">On-device speech</span>
+        </div>
       </header>
 
-      <h1>Live captions for calls, on your Mac.</h1>
-      <p class="lede">
-        Capture incoming meeting audio from a window you choose, run speech recognition on-device, and show two caption lanes for bilingual,
-        turn-taking conversations — no API keys, no translation bill.
-      </p>
-
-      <div class="panel" aria-hidden="true">
-        <div class="caption-demo">
-          <div class="cap-line">
-            <div class="cap-label">First section</div>
-            <div class="cap-text">Thanks everyone — I’ll follow up with the doc tomorrow.</div>
+      <section class="hero">
+        <div>
+          <h1><span class="gradient-text">Live captions</span> for bilingual calls.</h1>
+          <p class="lede">
+            Capture incoming meeting audio from a window you choose, transcribe on your Mac, and show <strong>two caption lanes</strong> for languages you pick — optimized when speakers take turns.
+          </p>
+          <div class="cta">
+            <!-- Direct asset URL: one click starts the browser download of the zip -->
+            <a
+              id="download-btn"
+              class="btn btn-primary"
+              href="https://github.com/voicelinelsweb/Livepal/releases/latest/download/Livepal-macos.zip"
+              rel="noopener"
+            >
+              Download for macOS
+            </a>
+            <a class="btn btn-ghost" href="https://github.com/voicelinelsweb/Livepal" rel="noopener">View source</a>
           </div>
-          <div class="cap-line">
-            <div class="cap-label">Second section</div>
-            <div class="cap-text secondary">Perfecto, envío el enlace cuando lo tenga listo.</div>
+          <p class="micro" style="margin-top: 1rem">
+            One click downloads <code>Livepal-macos.zip</code>. Unzip, drag <code>Livepal.app</code> to Applications, then open it. First launch: allow
+            <strong>Screen Recording</strong> and <strong>Speech Recognition</strong> in System Settings.
+          </p>
+          <p class="micro">
+            If the file is not published yet, open
+            <a href="https://github.com/voicelinelsweb/Livepal/releases">Releases</a>
+            or build locally: <code>cd macos &amp;&amp; ./scripts/package_app.sh</code>.
+          </p>
+        </div>
+
+        <div class="preview" aria-hidden="true">
+          <div class="preview-top">
+            <span>Caption overlay</span>
+            <div class="dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="lane">
+            <div class="lane-label">English (example)</div>
+            <div class="lane-text">I’ll send the deck after this — two minutes.</div>
+          </div>
+          <div class="lane">
+            <div class="lane-label">Spanish (example)</div>
+            <div class="lane-text es">Genial, yo preparo el resumen mientras tanto.</div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="actions">
-        <!-- Replace href with your hosted DMG/ZIP or GitHub Releases asset URL -->
-        <a id="download-btn" class="btn btn-primary" href="REPLACE_ME_DOWNLOAD_URL">Download for macOS</a>
-        <a class="btn btn-ghost" href="https://github.com/voicelinelsweb/Livepal" id="source-link">Source on GitHub</a>
-      </div>
-      <p class="hint" id="config-hint">
-        Before you ship: edit <code>landing/index.html</code> and set the download button <code>href</code> (and the GitHub URL) to your real links,
-        or deploy and update in Git.
-      </p>
+      <section class="steps">
+        <div class="step">
+          <strong>1 · Download</strong>
+          <span>Grab the latest zip from GitHub Releases — one click from the button above.</span>
+        </div>
+        <div class="step">
+          <strong>2 · Install</strong>
+          <span>Unzip and move Livepal into Applications. Open from Finder the first time.</span>
+        </div>
+        <div class="step">
+          <strong>3 · Caption</strong>
+          <span>Pick your meeting window, choose two languages, start — captions float over your desktop.</span>
+        </div>
+      </section>
 
-      <ul class="features">
-        <li><strong>Incoming audio</strong> — ScreenCaptureKit attaches to your Zoom / Meet / browser window.</li>
-        <li><strong>Two sections</strong> — Pick two of ten languages; phrases route by detected language.</li>
-        <li><strong>Turn-taking</strong> — Optimized for one remote speaker at a time.</li>
-        <li><strong>Privacy-friendly default</strong> — On-device Speech when Apple supports it for your locales.</li>
-      </ul>
+      <section class="grid">
+        <div class="feat">
+          <h3>Incoming audio</h3>
+          <p>Uses ScreenCaptureKit on the window you select (Zoom, Meet, browser tab, etc.).</p>
+        </div>
+        <div class="feat">
+          <h3>Ten languages</h3>
+          <p>Configure two lanes from ten supported locales; routing uses on-device language hints.</p>
+        </div>
+        <div class="feat">
+          <h3>No API bill</h3>
+          <p>Designed for free end-user use: on-device Speech when supported for your locales.</p>
+        </div>
+        <div class="feat">
+          <h3>Turn-taking</h3>
+          <p>Works best when one remote speaker talks at a time — like real interpreted meetings.</p>
+        </div>
+      </section>
 
       <footer>
-        Built as a lightweight static page — deploy the <code>landing</code> folder to Vercel with root set to <code>landing</code>, or deploy this repo and point the Vercel project at that directory.
+        <span>Static landing in <code>landing/</code> — deploy to Vercel with root <code>landing</code>.</span>
+        <a href="https://github.com/voicelinelsweb/Livepal/releases/latest">All releases →</a>
       </footer>
     </div>
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
-        var dl = params.get("dl");
-        if (dl) {
-          var btn = document.getElementById("download-btn");
-          btn.setAttribute("href", dl);
-          var hint = document.getElementById("config-hint");
-          hint.textContent = "Download link overridden by ?dl= query parameter.";
+        var override = params.get("dl");
+        if (override) {
+          document.getElementById("download-btn").setAttribute("href", override);
         }
       })();
     </script>

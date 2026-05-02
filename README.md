@@ -43,9 +43,24 @@ Deploy on Vercel:
 2. **New Project** → import the repo → set **Root Directory** to `landing`.
 3. Framework preset **Other** (no build command). Output is static `index.html`.
 
-Optional: pass a download URL without editing HTML: `https://your-site.vercel.app/?dl=https%3A%2F%2Fexample.com%2FLivepal.dmg`
+Optional: pass a download URL without editing HTML: `https://your-site.vercel.app/?dl=https%3A%2F%2Fexample.com%2FLivepal.zip`
 
-This repo’s first Vercel production deploy (from the `landing` directory) was: `https://landing-r516lrvd5-voicelinelswebs-projects.vercel.app` — set a cleaner alias under **Vercel → Project → Domains** if you like.
+### macOS download (GitHub Releases)
+
+The landing page button points at:
+
+`https://github.com/voicelinelsweb/Livepal/releases/latest/download/Livepal-macos.zip`
+
+Publishing a new zip is done by pushing a version tag (see `.github/workflows/release-macos.yml`):
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+Manual run (artifact only, no Release): **Actions → Release macOS app → Run workflow**.
+
+This repo’s Vercel deploy for `landing/` may be: `https://landing-r516lrvd5-voicelinelswebs-projects.vercel.app` — add a custom domain in the Vercel dashboard if you prefer.
 
 ## GitHub from the CLI
 

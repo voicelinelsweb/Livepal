@@ -1,0 +1,61 @@
+name: Release macOS app
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (release)
+        run: cd macos && swift build -c release
+
+      - name: Package Livepal.app and zip
+        run: |
+          set -euo pipefail
+          cd macos
+          BIN=""
+          for candidate in \
+            ".build/arm64-apple-macosx/release/Livepal" \
+            ".build/x86_64-apple-macosx/release/Livepal" \
+            ".build/release/Livepal"; do
+            if [[ -f "$candidate" ]]; then BIN="$candidate"; break; fi
+          done
+          if [[ -z "$BIN" ]]; then
+            BIN="$(find .build -name Livepal -type f -perm +111 2>/dev/null | head -1 || true)"
+          fi
+          if [[ -z "$BIN" || ! -f "$BIN" ]]; then
+            echo "Could not find release binary"; exit 1
+          fi
+          rm -rf Livepal.app Livepal-macos.zip
+          mkdir -p Livepal.app/Contents/MacOS Livepal.app/Contents/Resources
+          cp "$BIN" Livepal.app/Contents/MacOS/Livepal
+          cp Supporting/Info.plist Livepal.app/Contents/Info.plist
+          printf 'APPL????' > Livepal.app/Contents/PkgInfo
+          chmod +x Livepal.app/Contents/MacOS/Livepal
+          ditto -c -k --sequesterRsrc --keepParent Livepal.app Livepal-macos.zip
+          ls -la Livepal-macos.zip
+
+      - name: Publish GitHub Release (tagged builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: macos/Livepal-macos.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact (manual runs without tag)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Livepal-macos-zip
+          path: macos/Livepal-macos.zip
