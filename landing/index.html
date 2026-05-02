@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Livepal — free on-device live captions for Mac calls. Two languages, turn-taking friendly." />
+    <title>Livepal — Live captions for Mac</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #0b0c0f;
+        --panel: #12141a;
+        --text: #f2f4f8;
+        --muted: #9aa3b2;
+        --accent: #7dd3fc;
+        --accent-2: #fde047;
+        --border: rgba(255, 255, 255, 0.08);
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(1200px 600px at 20% -10%, rgba(125, 211, 252, 0.12), transparent),
+          radial-gradient(900px 500px at 90% 10%, rgba(253, 224, 71, 0.08), transparent), var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      a {
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
+      .logo {
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        font-size: 1.15rem;
+      }
+      .badge {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 0.35rem 0.6rem;
+        border-radius: 999px;
+      }
+      h1 {
+        font-size: clamp(2.1rem, 5vw, 3rem);
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+        margin: 0 0 1rem;
+      }
+      .lede {
+        font-size: 1.2rem;
+        color: var(--muted);
+        max-width: 52ch;
+        margin: 0 0 2rem;
+      }
+      .panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 1.25rem 1.25rem 1rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+      }
+      .caption-demo {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .cap-line {
+        border-radius: 14px;
+        padding: 0.85rem 1rem;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--border);
+      }
+      .cap-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        margin-bottom: 0.35rem;
+      }
+      .cap-text {
+        font-size: 1.05rem;
+        font-weight: 500;
+      }
+      .cap-text.secondary {
+        color: var(--accent-2);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        margin-bottom: 2.5rem;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.85rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+        font-size: 1rem;
+        font-family: inherit;
+      }
+      .btn-primary {
+        background: linear-gradient(180deg, #e8f7ff, #bae6fd);
+        color: #0c1220;
+      }
+      .btn-primary:hover {
+        filter: brightness(1.05);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--border);
+      }
+      .btn-ghost:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+      .hint {
+        font-size: 0.9rem;
+        color: var(--muted);
+        max-width: 60ch;
+      }
+      ul.features {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.75rem;
+      }
+      ul.features li {
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="logo">Livepal</div>
+        <span class="badge">macOS · On-device</span>
+      </header>
+
+      <h1>Live captions for calls, on your Mac.</h1>
+      <p class="lede">
+        Capture incoming meeting audio from a window you choose, run speech recognition on-device, and show two caption lanes for bilingual,
+        turn-taking conversations — no API keys, no translation bill.
+      </p>
+
+      <div class="panel" aria-hidden="true">
+        <div class="caption-demo">
+          <div class="cap-line">
+            <div class="cap-label">First section</div>
+            <div class="cap-text">Thanks everyone — I’ll follow up with the doc tomorrow.</div>
+          </div>
+          <div class="cap-line">
+            <div class="cap-label">Second section</div>
+            <div class="cap-text secondary">Perfecto, envío el enlace cuando lo tenga listo.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <!-- Replace href with your hosted DMG/ZIP or GitHub Releases asset URL -->
+        <a id="download-btn" class="btn btn-primary" href="REPLACE_ME_DOWNLOAD_URL">Download for macOS</a>
+        <a class="btn btn-ghost" href="https://github.com/REPLACE_ME_USER/Livepal" id="source-link">Source on GitHub</a>
+      </div>
+      <p class="hint" id="config-hint">
+        Before you ship: edit <code>landing/index.html</code> and set the download button <code>href</code> (and the GitHub URL) to your real links,
+        or deploy and update in Git.
+      </p>
+
+      <ul class="features">
+        <li><strong>Incoming audio</strong> — ScreenCaptureKit attaches to your Zoom / Meet / browser window.</li>
+        <li><strong>Two sections</strong> — Pick two of ten languages; phrases route by detected language.</li>
+        <li><strong>Turn-taking</strong> — Optimized for one remote speaker at a time.</li>
+        <li><strong>Privacy-friendly default</strong> — On-device Speech when Apple supports it for your locales.</li>
+      </ul>
+
+      <footer>
+        Built as a lightweight static page — deploy the <code>landing</code> folder to Vercel with root set to <code>landing</code>, or deploy this repo and point the Vercel project at that directory.
+      </footer>
+    </div>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var dl = params.get("dl");
+        if (dl) {
+          var btn = document.getElementById("download-btn");
+          btn.setAttribute("href", dl);
+          var hint = document.getElementById("config-hint");
+          hint.textContent = "Download link overridden by ?dl= query parameter.";
+        }
+      })();
+    </script>
+  </body>
+</html>

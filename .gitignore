@@ -1,0 +1,10 @@
+.env.local
+node_modules/
+.DS_Store
+macos/.build/
+macos/.swiftpm/
+*.xcworkspace
+*.xcodeproj/xcuserdata/
+macos/Livepal.app/
+.convex/
+
