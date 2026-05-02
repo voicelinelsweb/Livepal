@@ -23,4 +23,8 @@ echo "APPL????" > "$APP_NAME/Contents/PkgInfo"
 
 chmod +x "$APP_NAME/Contents/MacOS/Livepal"
 
+# Ad-hoc sign so Gatekeeper does not mark the bundle as malformed.
+codesign --force --deep --sign - "$APP_NAME"
+codesign --verify --deep --strict --verbose=2 "$APP_NAME"
+
 echo "Built $ROOT/$APP_NAME"

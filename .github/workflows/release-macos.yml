@@ -41,6 +41,9 @@ jobs:
           cp Supporting/Info.plist Livepal.app/Contents/Info.plist
           printf 'APPL????' > Livepal.app/Contents/PkgInfo
           chmod +x Livepal.app/Contents/MacOS/Livepal
+          # Ad-hoc signing reduces "damaged" errors on downloaded zips.
+          codesign --force --deep --sign - Livepal.app
+          codesign --verify --deep --strict --verbose=2 Livepal.app
           ditto -c -k --sequesterRsrc --keepParent Livepal.app Livepal-macos.zip
           ls -la Livepal-macos.zip
 

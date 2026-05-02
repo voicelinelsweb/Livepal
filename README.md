@@ -33,6 +33,18 @@ open Livepal.app
 
 The packaged `Livepal.app` includes `Info.plist` usage descriptions so macOS can show the privacy prompts.
 
+
+## If macOS says “Livepal is damaged”
+
+This is Gatekeeper/quarantine behavior for downloaded apps. Try:
+
+```bash
+xattr -dr com.apple.quarantine ~/Downloads/Livepal.app
+open ~/Downloads/Livepal.app
+```
+
+If your app is still blocked, move it to `/Applications` first and run the same command on that path.
+
 ## Landing page (Vercel)
 
 Static site lives in `landing/`. Edit `landing/index.html`: set **Download for macOS** `href` to your DMG/ZIP (for example a GitHub Release asset), and fix the GitHub link.
