@@ -54,9 +54,11 @@ The landing page button points at:
 Publishing a new zip is done by pushing a version tag (see `.github/workflows/release-macos.yml`):
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
+
+Prebuilt zips from GitHub Actions are **Apple Silicon (arm64)**. On Intel Macs, build locally with `swift build -c release` and `./scripts/package_app.sh`.
 
 Manual run (artifact only, no Release): **Actions → Release macOS app → Run workflow**.
 
